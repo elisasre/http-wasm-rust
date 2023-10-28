@@ -10,6 +10,7 @@ import (
 	"github.com/http-wasm/http-wasm-host-go/handler"
 	wasm "github.com/http-wasm/http-wasm-host-go/handler/nethttp"
 	"github.com/rs/zerolog"
+	log "github.com/rs/zerolog/log"
 	"github.com/tetratelabs/wazero"
 )
 
@@ -28,6 +29,7 @@ func main() {
 		panic(err)
 	}
 	http.Handle("/hello", handler)
+	log.Info().Msg("Listening on :8090")
 	http.ListenAndServe(":8090", nil)
 }
 
