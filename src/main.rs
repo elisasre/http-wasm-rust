@@ -1,4 +1,8 @@
 use std::str;
+use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
+use serde_json::Result;
+use lazy_static::lazy_static;
 
 pub const FATAL: i32 = 3;
 pub const ERROR: i32 = 2;
@@ -16,13 +20,27 @@ pub const FEATURE_BUFFER_REQUEST: u32 = 1;
 pub const FEATURE_BUFFER_RESPONSE: u32 = 2;
 pub const FEATURE_TRAILERS: u32 = 3;
 
-fn main() {}
+lazy_static! {
+    static ref CONFIG: Config = match serde_json::from_str(str::from_utf8(&get_conf()).unwrap()) {
+        Result::Ok(val) => {val},
+        Result::Err(err) => {panic!("err {}", err)}
+    };
+}
+
+fn main() {
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Config {
+    headers: HashMap<String, String>,
+}
 
 #[export_name="handle_request"]
 pub fn http_request() -> u64 {
-    let res: Vec<u8> = get_conf();
-    send_log(DEBUG, format!("config {:?}", String::from_utf8(res).unwrap()).as_str());
-
+    let conf: &Config = &*CONFIG;
+    for (k, v) in &conf.headers {
+        add_header(REQUEST_HEADER, &k, &v);
+    }
     return 1 as u64;
 }
 
