@@ -3,4 +3,4 @@ run-server:
 
 build-wasm:
 	cargo build --target wasm32-wasi --release
-	mv target/wasm32-wasi/release/http-wasm-guest-rust.wasm ./header.wasm
+	mv target/wasm32-wasi/release/http-wasm-rust.wasm ./header.wasm
