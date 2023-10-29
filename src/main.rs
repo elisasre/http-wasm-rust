@@ -12,23 +12,22 @@ pub const RESPONSE_HEADER: u32 = 1;
 pub const REQUEST_BODY: u32 = 0;
 pub const RESPONSE_BODY: u32 = 1;
 
+pub const FEATURE_BUFFER_REQUEST: u32 = 1;
+pub const FEATURE_BUFFER_RESPONSE: u32 = 2;
+pub const FEATURE_TRAILERS: u32 = 3;
+
 fn main() {}
 
 #[export_name="handle_request"]
 pub fn http_request() -> u64 {
     let res: Vec<u8> = get_conf();
     send_log(DEBUG, format!("config {:?}", String::from_utf8(res).unwrap()).as_str());
-    set_request_uri("/hello");
 
-    writebody(REQUEST_BODY, "foobar");
     return 1 as u64;
 }
 
 #[export_name="handle_response"]
-fn http_response(req_ctx: i32, is_error: i32) {
-    //let code = status_code();
-    //send_log(DEBUG, format!("code {:?}", code).as_str());
-    println!("http_response: {0} {1}", req_ctx, is_error);
+fn http_response(_req_ctx: i32, _is_error: i32) {
 }
 
 #[link(wasm_import_module = "http_handler")]
@@ -38,7 +37,7 @@ extern "C" {
     fn get_method(buf: *const u8, buf_limit: i32) -> i32;
     fn set_method(ptr: *const u8, message_len: u32);
     fn get_uri(ptr: *const u8, message_len: u32) -> i32;
-    fn set_uri(ptr: *const u8, message_len: u32); // TODO not working
+    fn set_uri(ptr: *const u8, message_len: u32);
     fn get_protocol_version(ptr: *const u8, message_len: u32) -> i32;
     fn add_header_value(header_kind: u32, name_ptr: *const u8, name_len: u32, value_ptr: *const u8, value_len: u32);
     fn set_header_value(header_kind: u32, name_ptr: *const u8, name_len: u32, value_ptr: *const u8, value_len: u32);
@@ -46,21 +45,40 @@ extern "C" {
     fn get_header_names(header_kind: u32, buf: *const u8, buf_limit: i32) -> i64;
     fn get_header_values(header_kind: u32, name_ptr: *const u8, name_len: u32, buf: *const u8, buf_limit: i32) -> i64;
     fn log_enabled(level: i32) -> i32;
-    fn write_body(body_kind: u32, ptr: *const u8, message_len: u32); // TODO: not working
-    fn get_status_code() -> i32; // TODO: not working
+    fn read_body(body_kind: u32, ptr: *const u8, buf_limit: u32) -> i64;
+    fn write_body(body_kind: u32, ptr: *const u8, message_len: u32);
+    fn get_status_code() -> i32;
     fn set_status_code(code: i32);
+    fn enable_features(feature: u32) -> i32;
+}
+
+pub fn status_code() -> i32 {
+    unsafe { return get_status_code() };
+}
+
+pub fn enablefeature(feature: u32) -> i32 {
+    unsafe { 
+        match enable_features(feature) {
+            res => {
+                return res;
+            }
+        }
+    };
+}
+
+pub fn readbody(kind: u32) -> Vec<u8> {
+    let read_buf: [u8; 2048] = [0; 2048];
+    unsafe {
+        match read_body(kind, read_buf.as_ptr(), 2048) { // TODO: how to define the limit?
+            len => {
+                return read_buf[0 .. len as usize].to_vec();
+            }
+        }
+    };
 }
 
 pub fn set_code(code: i32) {
     unsafe { set_status_code(code)};
-}
-
-pub fn status_code() -> i32 {
-    unsafe { 
-        match get_status_code() {
-            res=> return res
-        }
-    };
 }
 
 pub fn writebody(kind: u32, message: &str) {
