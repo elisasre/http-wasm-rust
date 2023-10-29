@@ -15,6 +15,8 @@ import (
 )
 
 func helloWorld(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(fmt.Sprintf("Method: %s\n", r.Method)))
+	w.Write([]byte(fmt.Sprintf("URI: %s\n", r.URL.String())))
 	for name, values := range r.Header {
 		// Loop over all values for the name.
 		for _, value := range values {
