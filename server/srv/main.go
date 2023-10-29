@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -15,6 +16,14 @@ import (
 )
 
 func helloWorld(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(fmt.Sprintf("Method: %s\n", r.Method)))
+	w.Write([]byte(fmt.Sprintf("URI: %s\n", r.URL.String())))
+
+	b, err := io.ReadAll(r.Body)
+	if err == nil {
+		w.Write([]byte(fmt.Sprintf("Body: %s\n", b)))
+	}
+
 	for name, values := range r.Header {
 		// Loop over all values for the name.
 		for _, value := range values {

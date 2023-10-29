@@ -2,6 +2,16 @@
 
 ## guest os
 
+add target
+
+```bash
+rustup target add wasm32-wasi
+```
+
+build
+```bash
+make build-wasm
+```
 
 ## server
 
