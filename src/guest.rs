@@ -36,6 +36,7 @@ extern "C" {
     fn get_status_code() -> i32;
     fn set_status_code(code: i32);
     fn enable_features(feature: u32) -> i32;
+    fn get_source_addr(buf: *const u8, buf_limit: i32) -> i32;
 }
 
 pub fn status_code() -> i32 {
@@ -43,7 +44,7 @@ pub fn status_code() -> i32 {
 }
 
 pub fn enable_feature(feature: u32) -> i32 {
-    unsafe { 
+    unsafe {
         match enable_features(feature) {
             res => {
                 return res;
@@ -72,7 +73,7 @@ pub fn writebody(kind: u32, message: &str) {
 }
 
 pub fn log_enabl(level: i32) -> i32 {
-    unsafe { 
+    unsafe {
         match log_enabled(level) {
             res => return res
         }
@@ -81,7 +82,7 @@ pub fn log_enabl(level: i32) -> i32 {
 
 pub fn get_header_val(kind: u32, name: &str) -> Vec<String> {
     let read_buf: [u8; 2048] = [0; 2048];
-    unsafe { 
+    unsafe {
         match get_header_values(kind, name.as_ptr(), name.len() as u32, read_buf.as_ptr(), 2048) {
             len => {
                 let data: &[u8] = &read_buf[0 .. len as usize];
@@ -93,7 +94,7 @@ pub fn get_header_val(kind: u32, name: &str) -> Vec<String> {
 
 pub fn get_headers(kind: u32) -> Vec<String> {
     let read_buf: [u8; 2048] = [0; 2048];
-    unsafe { 
+    unsafe {
         match get_header_names(kind, read_buf.as_ptr(), 2048) {
             len => {
                 let data: &[u8] = &read_buf[0 .. len as usize];
@@ -121,7 +122,7 @@ pub fn send_log(level: i32, message: &str) {
 
 pub fn get_conf() -> Vec<u8> {
     let read_buf: [u8; 2048] = [0; 2048];
-    unsafe { 
+    unsafe {
         match get_config(read_buf.as_ptr(), 2048) {
             len => {
                 return read_buf[0 .. len as usize].to_vec();
@@ -130,9 +131,20 @@ pub fn get_conf() -> Vec<u8> {
     };
 }
 
+pub fn get_addr() -> String {
+    let read_buf: [u8; 2048] = [0; 2048];
+    unsafe {
+        match get_source_addr(read_buf.as_ptr(), 2048) {
+            len => {
+                return str::from_utf8(&read_buf[0 .. len as usize]).unwrap().to_string();
+            }
+        }
+    };
+}
+
 pub fn get_request_method() -> String {
     let read_buf: [u8; 2048] = [0; 2048];
-    unsafe { 
+    unsafe {
         match get_method(read_buf.as_ptr(), 2048) {
             len => {
                 return str::from_utf8(&read_buf[0 .. len as usize]).unwrap().to_string();
@@ -147,7 +159,7 @@ pub fn set_request_method(method: &str) {
 
 pub fn get_request_uri() -> String {
     let read_buf: [u8; 2048] = [0; 2048];
-    unsafe { 
+    unsafe {
         match get_uri(read_buf.as_ptr(), 2048) {
             len => {
                 return str::from_utf8(&read_buf[0 .. len as usize]).unwrap().to_string();
@@ -162,7 +174,7 @@ pub fn set_request_uri(uri: &str) {
 
 pub fn get_request_protocol_version() -> String {
     let read_buf: [u8; 2048] = [0; 2048];
-    unsafe { 
+    unsafe {
         match get_protocol_version(read_buf.as_ptr(), 2048) {
             len => {
                 return str::from_utf8(&read_buf[0 .. len as usize]).unwrap().to_string();
