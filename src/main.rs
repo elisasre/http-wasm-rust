@@ -27,6 +27,7 @@ pub fn http_request() -> u64 {
     for (k, v) in &conf.headers {
         guest::add_header(guest::REQUEST_HEADER, &k, &v);
     }
+    guest::send_log(guest::DEBUG, format!("{:?}", guest::get_addr()).as_str());
     return 1 as u64;
 }
 
